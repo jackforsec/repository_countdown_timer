@@ -1,24 +1,52 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>⏱ 倒數計時</title>
-  <!-- 自動部署流程測試 v2 -->
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── 深色主題（預設） ── */
     :root {
-      --bg: #0f0f1a;
-      --surface: #1A1A2E;
-      --primary: #2B4EFF;
+      --bg:            #0f0f1a;
+      --surface:       #1A1A2E;
+      --surface-input: #12122a;
+      --border:        #2a2a4a;
+      --border-hover:  #3a3a5a;
+      --primary:       #2B4EFF;
       --primary-hover: #1a3de0;
-      --red: #FF5F5F;
-      --yellow: #FFD166;
-      --green: #06D6A0;
-      --text: #e8eaf0;
-      --text-muted: #8890a8;
-      --radius: 8px;
+      --red:           #FF5F5F;
+      --yellow:        #FFD166;
+      --green:         #06D6A0;
+      --text:          #e8eaf0;
+      --text-muted:    #8890a8;
+      --shadow:        rgba(0,0,0,0.4);
+      --flash-color:   #3d0a0a;
+      --radius:        8px;
+    }
+
+    /* ── 淺色主題 ── */
+    [data-theme="light"] {
+      --bg:            #f0f4ff;
+      --surface:       #ffffff;
+      --surface-input: #f5f7ff;
+      --border:        #c8d0f0;
+      --border-hover:  #a0aed8;
+      --primary:       #2B4EFF;
+      --primary-hover: #1a3de0;
+      --red:           #e03030;
+      --yellow:        #c89000;
+      --green:         #00a07a;
+      --text:          #1a1a2e;
+      --text-muted:    #5560a0;
+      --shadow:        rgba(43,78,255,0.12);
+      --flash-color:   #ffd0d0;
+    }
+
+    /* ── 主題過渡動畫 ── */
+    body, .input-section, .time-input, .btn, .btn-preset, .sound-btn, .ring-bg {
+      transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
     }
 
     body {
@@ -39,9 +67,18 @@
       flex-direction: column;
       align-items: center;
       gap: 28px;
+      position: relative;
     }
 
-    /* Title */
+    /* ── 標題列 ── */
+    .title-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
     .title {
       font-size: 2.2rem;
       font-weight: 700;
@@ -49,23 +86,47 @@
       color: var(--text);
     }
 
-    /* Input section */
+    /* ── 主題切換按鈕 ── */
+    .theme-btn {
+      position: absolute;
+      right: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .theme-btn:hover {
+      background: var(--border);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .theme-btn .theme-icon { font-size: 1rem; }
+
+    /* ── Input section ── */
     .input-section {
       width: 100%;
       background: var(--surface);
       border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 24px var(--shadow);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: opacity 0.3s;
     }
 
-    .input-section.hidden {
-      display: none;
-    }
+    .input-section.hidden { display: none; }
 
     .time-field {
       display: flex;
@@ -84,15 +145,15 @@
     .time-input {
       width: 76px;
       height: 72px;
-      background: #12122a;
-      border: 2px solid #2a2a4a;
+      background: var(--surface-input);
+      border: 2px solid var(--border);
       border-radius: var(--radius);
       color: var(--text);
       font-family: 'Courier New', monospace;
       font-size: 2rem;
       font-weight: 700;
       text-align: center;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
       -moz-appearance: textfield;
     }
 
@@ -102,7 +163,7 @@
     .time-input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(43,78,255,0.25);
+      box-shadow: 0 0 0 3px rgba(43,78,255,0.2);
     }
 
     .time-input:read-only {
@@ -118,7 +179,7 @@
       user-select: none;
     }
 
-    /* Timer display */
+    /* ── Timer display ── */
     .timer-section {
       display: flex;
       flex-direction: column;
@@ -133,13 +194,11 @@
       gap: 4px;
     }
 
-    .progress-ring {
-      transform: rotate(-90deg);
-    }
+    .progress-ring { transform: rotate(-90deg); }
 
     .ring-bg {
       fill: none;
-      stroke: #2a2a4a;
+      stroke: var(--border);
       stroke-width: 7;
     }
 
@@ -157,7 +216,7 @@
 
     @keyframes ring-blink {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+      50%       { opacity: 0.3; }
     }
 
     .timer-digits {
@@ -166,16 +225,14 @@
       font-weight: 700;
       letter-spacing: 0.06em;
       color: var(--text);
-      transition: transform 0.15s ease-out;
+      transition: transform 0.15s ease-out, color 0.3s;
     }
 
-    .timer-digits.tick {
-      animation: tick-bounce 0.15s ease-out;
-    }
+    .timer-digits.tick { animation: tick-bounce 0.15s ease-out; }
 
     @keyframes tick-bounce {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.06); }
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.06); }
       100% { transform: scale(1); }
     }
 
@@ -192,10 +249,10 @@
 
     .sound-btn:hover {
       color: var(--text);
-      background: #2a2a4a;
+      background: var(--border);
     }
 
-    /* Controls */
+    /* ── Controls ── */
     .controls {
       display: flex;
       gap: 12px;
@@ -214,48 +271,29 @@
       min-height: 48px;
     }
 
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
+    .btn:hover:not(:disabled)  { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    .btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: var(--primary-hover);
-    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
 
     .btn-secondary {
-      background: #2a2a4a;
+      background: var(--border);
       color: var(--text);
     }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #35355a;
-    }
+    .btn-secondary:hover:not(:disabled) { background: var(--border-hover); }
 
     .btn-reset {
-      background: #2a2a4a;
+      background: var(--border);
       color: var(--text-muted);
     }
-
     .btn-reset:hover:not(:disabled) {
-      background: #3a3a5a;
+      background: var(--border-hover);
       color: var(--text);
     }
 
-    /* Finished overlay */
+    /* ── Finished ── */
     .finished-msg {
       display: none;
       flex-direction: column;
@@ -263,10 +301,7 @@
       gap: 8px;
       animation: fadeIn 0.4s ease forwards;
     }
-
-    .finished-msg.show {
-      display: flex;
-    }
+    .finished-msg.show { display: flex; }
 
     .finished-text {
       font-size: 1.8rem;
@@ -286,25 +321,19 @@
 
     @keyframes flash-bg {
       0%, 100% { background: var(--bg); }
-      20%, 60% { background: #3d0a0a; }
+      20%, 60% { background: var(--flash-color); }
       40%, 80% { background: var(--bg); }
     }
 
-    body.flash {
-      animation: flash-bg 1.2s ease forwards;
-    }
+    body.flash { animation: flash-bg 1.2s ease forwards; }
 
-    /* Preset buttons */
-    .presets {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-    }
+    /* ── Preset buttons ── */
+    .presets { display: flex; gap: 10px; width: 100%; }
 
     .btn-preset {
       flex: 1;
       height: 40px;
-      border: 1.5px solid #2a2a4a;
+      border: 1.5px solid var(--border);
       border-radius: var(--radius);
       background: transparent;
       color: var(--text-muted);
@@ -315,35 +344,43 @@
     }
 
     .btn-preset:hover {
-      background: #2a2a4a;
+      background: var(--border);
       border-color: var(--primary);
       color: var(--text);
       transform: translateY(-1px);
     }
 
-    .btn-preset:active {
-      transform: translateY(0);
-    }
+    .btn-preset:active { transform: translateY(0); }
 
-    /* Current time */
+    /* ── Current time ── */
     .current-time {
       font-size: 0.9rem;
       color: var(--text-muted);
       letter-spacing: 0.08em;
       font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
     }
 
-    /* Responsive */
+    /* ── Responsive ── */
     @media (max-width: 479px) {
       .time-input { width: 68px; height: 64px; font-size: 1.7rem; }
       .btn { font-size: 0.9rem; }
       .btn-preset { font-size: 0.8rem; }
+      .theme-btn .theme-label { display: none; }
     }
   </style>
 </head>
 <body>
 <div class="app">
-  <h1 class="title">⏱ 倒數計時</h1>
+
+  <!-- 標題列 + 主題切換 -->
+  <div class="title-row">
+    <h1 class="title">⏱ 倒數計時</h1>
+    <button class="theme-btn" id="themeBtn" title="切換主題">
+      <span class="theme-icon">🌙</span>
+      <span class="theme-label">深色</span>
+    </button>
+  </div>
 
   <!-- Input -->
   <div class="input-section" id="inputSection">
@@ -370,7 +407,7 @@
     <button class="btn-preset" data-seconds="1200">20 分鐘</button>
   </div>
 
-  <!-- Timer ring -->
+  <!-- Timer -->
   <div class="timer-section">
     <div class="timer-display">
       <div class="current-time"><span class="current-time-label">目前時間 </span><span id="currentTime">00:00:00</span></div>
@@ -394,23 +431,25 @@
     <div class="finished-text">⏰ 時間到！</div>
     <div class="finished-sub">計時已完成</div>
   </div>
+
 </div>
 
 <script>
 (() => {
   // --- DOM refs ---
-  const inputSection = document.getElementById('inputSection');
+  const inputSection  = document.getElementById('inputSection');
   const presetsSection = document.getElementById('presetsSection');
-  const inputH = document.getElementById('inputH');
-  const inputM = document.getElementById('inputM');
-  const inputS = document.getElementById('inputS');
+  const inputH        = document.getElementById('inputH');
+  const inputM        = document.getElementById('inputM');
+  const inputS        = document.getElementById('inputS');
   const currentTimeEl = document.getElementById('currentTime');
-  const timerDigits = document.getElementById('timerDigits');
-  const ringFg = document.getElementById('ringFg');
-  const btnStart = document.getElementById('btnStart');
-  const btnReset = document.getElementById('btnReset');
-  const soundBtn = document.getElementById('soundBtn');
-  const finishedMsg = document.getElementById('finishedMsg');
+  const timerDigits   = document.getElementById('timerDigits');
+  const ringFg        = document.getElementById('ringFg');
+  const btnStart      = document.getElementById('btnStart');
+  const btnReset      = document.getElementById('btnReset');
+  const soundBtn      = document.getElementById('soundBtn');
+  const finishedMsg   = document.getElementById('finishedMsg');
+  const themeBtn      = document.getElementById('themeBtn');
 
   // --- SVG ring setup ---
   const R = 62;
@@ -429,6 +468,27 @@
   let audioCtx = null;
   let wasRunningBeforeHide = false;
 
+  // --- Theme ---
+  const savedTheme = localStorage.getItem('timer-theme') || 'dark';
+  applyTheme(savedTheme);
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      themeBtn.innerHTML = '<span class="theme-icon">☀️</span><span class="theme-label">淺色</span>';
+      themeBtn.title = '切換為淺色主題';
+    } else {
+      themeBtn.innerHTML = '<span class="theme-icon">🌙</span><span class="theme-label">深色</span>';
+      themeBtn.title = '切換為深色主題';
+    }
+    localStorage.setItem('timer-theme', theme);
+  }
+
+  themeBtn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
   // --- AudioEngine ---
   function initAudio() {
     if (!audioCtx) {
@@ -436,14 +496,14 @@
     }
   }
 
-  function beep(freq, duration, startTime, type = 'sine') {
+  function beep(freq, duration, startTime) {
     if (!audioCtx || !soundEnabled) return;
     try {
-      const osc = audioCtx.createOscillator();
+      const osc  = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-      osc.type = type;
+      osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, startTime);
       gain.gain.setValueAtTime(0.35, startTime);
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
@@ -463,7 +523,7 @@
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     try {
-      const osc = audioCtx.createOscillator();
+      const osc  = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
       gain.connect(audioCtx.destination);
@@ -498,21 +558,19 @@
 
   function updateDisplay(sec) {
     timerDigits.textContent = formatTime(sec);
-    // tick bounce
     timerDigits.classList.remove('tick');
     void timerDigits.offsetWidth;
     timerDigits.classList.add('tick');
   }
 
   function updateRing(rem, total) {
-    const ratio = total > 0 ? rem / total : 0;
+    const ratio  = total > 0 ? rem / total : 0;
     const offset = CIRCUMFERENCE * (1 - ratio);
     ringFg.style.strokeDashoffset = offset;
-    // color
     let color;
-    if (ratio > 0.5) color = '#06D6A0';
-    else if (ratio > 0.2) color = '#FFD166';
-    else color = '#FF5F5F';
+    if (ratio > 0.5)      color = getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
+    else if (ratio > 0.2) color = getComputedStyle(document.documentElement).getPropertyValue('--yellow').trim();
+    else                  color = getComputedStyle(document.documentElement).getPropertyValue('--red').trim();
     ringFg.style.stroke = color;
   }
 
@@ -525,9 +583,9 @@
     initAudio();
     if (state === STATE.IDLE) {
       totalSeconds = getInputTotal();
-      remaining = totalSeconds;
+      remaining    = totalSeconds;
     }
-    state = STATE.RUNNING;
+    state    = STATE.RUNNING;
     lastTick = Date.now();
     intervalId = setInterval(tick, 200);
 
@@ -535,8 +593,8 @@
     presetsSection.style.display = 'none';
     finishedMsg.classList.remove('show');
     btnStart.textContent = '⏸ 暫停';
-    btnStart.className = 'btn btn-secondary';
-    btnStart.disabled = false;
+    btnStart.className   = 'btn btn-secondary';
+    btnStart.disabled    = false;
     ringFg.classList.remove('paused');
 
     updateDisplay(remaining);
@@ -548,26 +606,24 @@
     intervalId = null;
     state = STATE.PAUSED;
     btnStart.textContent = '▶ 繼續';
-    btnStart.className = 'btn btn-primary';
+    btnStart.className   = 'btn btn-primary';
     ringFg.classList.add('paused');
   }
 
   function toIdle() {
     clearInterval(intervalId);
     intervalId = null;
-    state = STATE.IDLE;
+    state     = STATE.IDLE;
     remaining = 0;
 
     inputSection.classList.remove('hidden');
     presetsSection.style.display = 'flex';
     finishedMsg.classList.remove('show');
     btnStart.textContent = '▶ 開始';
-    btnStart.className = 'btn btn-primary';
+    btnStart.className   = 'btn btn-primary';
     ringFg.classList.remove('paused');
 
-    // restore inputs
     [inputH, inputM, inputS].forEach(el => el.removeAttribute('readonly'));
-
     const h = parseInt(inputH.value) || 0;
     const m = parseInt(inputM.value) || 0;
     const s = parseInt(inputS.value) || 0;
@@ -579,18 +635,17 @@
   function toFinished() {
     clearInterval(intervalId);
     intervalId = null;
-    state = STATE.FINISHED;
+    state     = STATE.FINISHED;
     remaining = 0;
 
     updateDisplay(0);
     updateRing(0, totalSeconds);
     finishedMsg.classList.add('show');
     btnStart.textContent = '▶ 開始';
-    btnStart.className = 'btn btn-primary';
-    btnStart.disabled = true;
+    btnStart.className   = 'btn btn-primary';
+    btnStart.disabled    = true;
     ringFg.classList.remove('paused');
 
-    // flash bg
     document.body.classList.remove('flash');
     void document.body.offsetWidth;
     document.body.classList.add('flash');
@@ -611,31 +666,27 @@
   // --- Tick ---
   function tick() {
     if (state !== STATE.RUNNING) return;
-    const now = Date.now();
+    const now     = Date.now();
     const elapsed = Math.round((now - lastTick) / 1000);
     if (elapsed < 1) return;
-    lastTick += elapsed * 1000;
-    remaining = Math.max(0, remaining - elapsed);
+    lastTick  += elapsed * 1000;
+    remaining  = Math.max(0, remaining - elapsed);
 
     updateDisplay(remaining);
     updateRing(remaining, totalSeconds);
 
-    // countdown beeps
     if (remaining <= 3 && remaining > 0) playCountdownBeep();
-
     if (remaining === 0) toFinished();
   }
 
   // --- Button handlers ---
   btnStart.addEventListener('click', () => {
-    if (state === STATE.IDLE || state === STATE.FINISHED) toRunning();
+    if      (state === STATE.IDLE || state === STATE.FINISHED) toRunning();
     else if (state === STATE.RUNNING) toPaused();
-    else if (state === STATE.PAUSED) toRunning();
+    else if (state === STATE.PAUSED)  toRunning();
   });
 
-  btnReset.addEventListener('click', () => {
-    toIdle();
-  });
+  btnReset.addEventListener('click', toIdle);
 
   soundBtn.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
@@ -649,51 +700,27 @@
     el.value = Math.min(max, Math.max(min, v));
   }
 
-  inputH.addEventListener('blur', () => { clampInput(inputH, 0, 99); validateStart(); updateIdleDisplay(); });
-  inputM.addEventListener('blur', () => { clampInput(inputM, 0, 59); validateStart(); updateIdleDisplay(); });
-  inputS.addEventListener('blur', () => { clampInput(inputS, 0, 59); validateStart(); updateIdleDisplay(); });
-
+  inputH.addEventListener('blur',  () => { clampInput(inputH, 0, 99); validateStart(); updateIdleDisplay(); });
+  inputM.addEventListener('blur',  () => { clampInput(inputM, 0, 59); validateStart(); updateIdleDisplay(); });
+  inputS.addEventListener('blur',  () => { clampInput(inputS, 0, 59); validateStart(); updateIdleDisplay(); });
   inputH.addEventListener('focus', () => inputH.select());
   inputM.addEventListener('focus', () => inputM.select());
   inputS.addEventListener('focus', () => inputS.select());
 
-  // filter non-numeric
   [inputH, inputM, inputS].forEach(el => {
-    el.addEventListener('input', () => {
-      el.value = el.value.replace(/[^0-9]/g, '');
-      validateStart();
-    });
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') { e.preventDefault(); el.value = parseInt(el.value || 0) + 1; el.dispatchEvent(new Event('blur')); }
+    el.addEventListener('input', () => { el.value = el.value.replace(/[^0-9]/g, ''); validateStart(); });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp')   { e.preventDefault(); el.value = parseInt(el.value || 0) + 1; el.dispatchEvent(new Event('blur')); }
       if (e.key === 'ArrowDown') { e.preventDefault(); el.value = Math.max(0, parseInt(el.value || 0) - 1); el.dispatchEvent(new Event('blur')); }
     });
   });
 
   function updateIdleDisplay() {
     if (state === STATE.IDLE) {
-      const total = getInputTotal();
-      updateDisplay(total);
+      updateDisplay(getInputTotal());
       updateRing(1, 1);
     }
   }
-
-  // --- Visibility change ---
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      if (state === STATE.RUNNING) {
-        wasRunningBeforeHide = true;
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    } else {
-      if (wasRunningBeforeHide && state === STATE.RUNNING) {
-        wasRunningBeforeHide = false;
-        // recalculate remaining based on actual elapsed
-        lastTick = Date.now();
-        intervalId = setInterval(tick, 200);
-      }
-    }
-  });
 
   // --- Preset buttons ---
   document.querySelectorAll('.btn-preset').forEach(btn => {
@@ -711,20 +738,33 @@
   // --- Current clock ---
   function tickClock() {
     const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    const s = String(now.getSeconds()).padStart(2, '0');
-    currentTimeEl.textContent = `${h}:${m}:${s}`;
+    currentTimeEl.textContent =
+      `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
   }
   tickClock();
   setInterval(tickClock, 1000);
+
+  // --- Visibility change ---
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (state === STATE.RUNNING) {
+        wasRunningBeforeHide = true;
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    } else {
+      if (wasRunningBeforeHide && state === STATE.RUNNING) {
+        wasRunningBeforeHide = false;
+        lastTick   = Date.now();
+        intervalId = setInterval(tick, 200);
+      }
+    }
+  });
 
   // --- Init ---
   validateStart();
   updateDisplay(getInputTotal());
   updateRing(1, 1);
-
-  // sync display when inputs change at idle
   [inputH, inputM, inputS].forEach(el => el.addEventListener('input', updateIdleDisplay));
 })();
 </script>
